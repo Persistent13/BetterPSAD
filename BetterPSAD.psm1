@@ -11,14 +11,14 @@
     .EXAMPLE
     Reset-ADAccountPassword -User kjotaro -Password St@rDu$t86
 
-    This will reset the user kjotaro's password to St@rDu$t86 and set the account
-    to have the password reset at next logon.
-
-    .EXAMPLE
-    C:\PS> Reset-ADAccountPassword -User kjotaro -Password St@rDu$t86 -ChangePasswordAtLogon $false
-
     This will reset the user kjotaro's password to St@rDu$t86 however the password
     will not be required to be changed at logon.
+
+    .EXAMPLE
+    C:\PS> Reset-ADAccountPassword -User kjotaro -Password St@rDu$t86 -ChangePasswordAtLogon
+
+    This will reset the user kjotaro's password to St@rDu$t86 and set the account
+    to have the password reset at next logon.
 #>
     [cmdletbinding()]
     param
