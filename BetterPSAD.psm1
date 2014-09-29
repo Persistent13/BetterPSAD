@@ -19,6 +19,12 @@
 
     This will reset the user kjotaro's password to St@rDu$t86 and set the account
     to have the password reset at next logon.
+
+    .EXAMPLE
+    C:\PS> Reset-ADAccountPassword -User kjotaro
+    The password is now: h1HZwOag
+
+    When a password is not specified a password will be generated for the account.
 #>
     [cmdletbinding()]
     param
@@ -26,21 +32,30 @@
         [Parameter(Mandatory=$true, ValueFromPipeline=$True, Position=0)]
         [Alias("Account","Name")]
         [String]$User,
-        [Parameter(Mandatory=$true, ValueFromPipeline=$True, Position=1)]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$True, Position=1)]
         [String]$Password,
         [Parameter(Mandatory=$false)]
         [Alias("ResetAtLogon")]
         [Switch]$ChangePasswordAtLogon
     )
-    if($ChangePasswordAtLogon)
+    $ErrorActionPreference = "Stop"
+    if(!$Password)
+    {
+        $restPassword = Invoke-RestMethod -Uri "https://passwd.me/api/1.0/get_password.txt?length=8"
+        Set-ADAccountPassword -Identity $User -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $restPassword -Force)
+        Write-Output "The password is now: $restPassword"
+    }
+    else
     {
         Set-ADAccountPassword -Identity $User -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $Password -Force)
+    }
+    if($ChangePasswordAtLogon)
+    {
         Set-ADuser $User -ChangePasswordAtLogon $true
         Unlock-ADAccount $User
     }
     else
     {
-        Set-ADAccountPassword -Identity $User -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $Password -Force)
         Unlock-ADAccount $User
     }
 }
