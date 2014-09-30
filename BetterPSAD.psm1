@@ -29,11 +29,16 @@
     [cmdletbinding()]
     param
     (
-        [Parameter(Mandatory=$true, ValueFromPipeline=$True, Position=0)]
-        [Alias("Account","Name")]
+        [Parameter(Mandatory=$true, 
+                    ValueFromPipeline=$True, 
+                    Position=0,
+                    ValueFromPipelinebyPropertyName=$True)]
+        [Alias("Account","Name","UserName")]
         [String]$User,
-        [Parameter(Mandatory=$false, ValueFromPipeline=$True, Position=1)]
+
+        [Parameter(Mandatory=$false, Position=1)]
         [String]$Password,
+
         [Parameter(Mandatory=$false)]
         [Alias("ResetAtLogon")]
         [Switch]$ChangePasswordAtLogon
@@ -42,8 +47,10 @@
     if(!$Password)
     {
         $restPassword = Invoke-RestMethod -Uri "https://passwd.me/api/1.0/get_password.txt?length=8"
+        Write-Debug "Getting password from external address https://passwd.me/api/1.0/get_password.txt?length=8"
+        Write-Verbose "Getting password."
         Set-ADAccountPassword -Identity $User -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $restPassword -Force)
-        Write-Output "The password is now: $restPassword"
+        Write-Output $restPassword
     }
     else
     {
