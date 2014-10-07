@@ -34,7 +34,7 @@
                     Position=0,
                     ValueFromPipelinebyPropertyName=$True)]
         [Alias("Account","Name","UserName")]
-        [String]$User,
+        [String[]]$User,
 
         [Parameter(Mandatory=$false, Position=1)]
         [String]$Password,
@@ -43,27 +43,40 @@
         [Alias("ResetAtLogon")]
         [Switch]$ChangePasswordAtLogon
     )
-    $ErrorActionPreference = "Stop"
     if(!$Password)
     {
-        $restPassword = Invoke-RestMethod -Uri "https://passwd.me/api/1.0/get_password.txt?length=8"
-        Write-Debug "Getting password from external address https://passwd.me/api/1.0/get_password.txt?length=8"
-        Write-Verbose "Getting password."
-        Set-ADAccountPassword -Identity $User -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $restPassword -Force)
-        Write-Output $restPassword
+        for($i=0;$i -le $User.length-1;$i++)
+        {
+            Write-Debug "Getting password from external address https://passwd.me/api/1.0/get_password.txt?length=8"
+            $restPassword = Invoke-RestMethod -Uri "https://passwd.me/api/1.0/get_password.txt?length=8"
+            Write-Debug "Attempting to change the user password and then unlock the account."
+            Set-ADAccountPassword -Identity $User[$i] -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $restPassword -Force)
+            Unlock-ADAccount $User[$i]
+            $properties = @{'User'=$User[$i];'New Password'=$restPassword}
+            $object = New-Object -TypeName PSOBject -Property $properties
+            Write-Output $object
+        }
     }
     else
     {
-        Set-ADAccountPassword -Identity $User -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $Password -Force)
+        for($i=0;$i -le $User.length-1;$i++)
+        {
+            Write-Debug "Attempting to change the user password and then unlock the account."
+            Set-ADAccountPassword -Identity $User[$i] -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $Password -Force)
+            Unlock-ADAccount $User[$i]
+            $properties = @{'User'=$User[$i];'New Password'=$Password}
+            $object = New-Object -TypeName PSOBject -Property $properties
+            Write-Output $object
+        }
+
     }
     if($ChangePasswordAtLogon)
     {
-        Set-ADuser $User -ChangePasswordAtLogon $true
-        Unlock-ADAccount $User
-    }
-    else
-    {
-        Unlock-ADAccount $User
+        for($i=0;$i -le $User.length-1;$i++)
+        {
+            Write-Debug "Attempting to set the user account to change the password at logon."
+            Set-ADuser $User[$i] -ChangePasswordAtLogon $true
+        }
     }
 }
 function Get-ADLockedAccount
@@ -106,7 +119,7 @@ by querying the event logs on the PDC emulation in the domain.
     [Alias("Domain")]
     [string]$DomainName = $env:USERDOMAIN,
 
-    [Parameter(Mandatory=$true,
+    [Parameter(Mandatory=$false,
                 Position=0,
                 ValueFromPipeline=$True,
                 ValueFromPipelinebyPropertyName=$True)]
