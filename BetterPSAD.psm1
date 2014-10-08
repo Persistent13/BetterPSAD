@@ -8,6 +8,20 @@
     the password changed at the users logon. The user You can identify a user by
     its distinguished name (DN), GUID, security identifier (SID) or
     Security Accounts Manager (SAM) account name.
+    .PARAMETER User
+    The array of users that will have their account passwords reset.
+    .PARAMETER Password
+    The password all users will recieve, if no password is specifed
+    all users will recieve unique passwords.
+    .PARAMETER ChangePasswordAtLogon
+    If used all accounts specifed will recieve a prompt to have their passwords
+    changed at logon.
+    .INPUTS
+    A user object is recieved by the User parameter.
+
+    A password string is recieved by the Password parameter.
+    .OUTPUTS
+    Returns the user name and new password.
     .EXAMPLE
     Reset-ADAccountPassword -User kjotaro -Password St@rDu$t86
 
