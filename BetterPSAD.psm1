@@ -94,10 +94,10 @@
     {
         for($i=0;$i -le $User.length-1;$i++)
         {
-            Write-Debug "Getting password from external address https://passwd.me/api/1.0/get_password.txt?length=8"
             $restPassword = Invoke-RestMethod -Uri "https://passwd.me/api/1.0/get_password.txt?length=8"
-            Write-Debug "Attempting to change the user password and then unlock the account."
+            Write-Debug "Attempting to change the user password."
             Set-ADAccountPassword -Identity $User[$i] -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $restPassword -Force)
+            Write-Debug "Attempting to unlock the account."
             Unlock-ADAccount $User[$i]
             $properties = @{'User'=$User[$i];'New Password'=$restPassword}
             $object = New-Object -TypeName PSOBject -Property $properties
@@ -108,8 +108,9 @@
     {
         for($i=0;$i -le $User.length-1;$i++)
         {
-            Write-Debug "Attempting to change the user password and then unlock the account."
+            Write-Debug "Attempting to change the user password."
             Set-ADAccountPassword -Identity $User[$i] -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $Password -Force)
+            Write-Debug "Attemping to unlock the account."
             Unlock-ADAccount $User[$i]
             $properties = @{'User'=$User[$i];'New Password'=$Password}
             $object = New-Object -TypeName PSOBject -Property $properties
