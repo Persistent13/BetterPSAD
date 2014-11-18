@@ -110,7 +110,7 @@
         {
             Write-Debug "Attempting to change the user password."
             Set-ADAccountPassword -Identity $User[$i] -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $Password -Force)
-            Write-Debug "Attemping to unlock the account."
+            Write-Debug "Attempting to unlock the account."
             Unlock-ADAccount $User[$i]
             $properties = @{'User'=$User[$i];'New Password'=$Password}
             $object = New-Object -TypeName PSOBject -Property $properties
